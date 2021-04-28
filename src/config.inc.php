@@ -1,14 +1,13 @@
 <?php
 
 /**
- * JPGraph v4.1.0-beta.01
+ * JPGraph - Community Edition
  */
-require_once __DIR__ . '/../vendor/autoload.php';
 
+require_once __DIR__ . '/../vendor/autoload.php';
 
 use Amenadiel\JpGraph\Util;
 
-require_once __DIR__ . '/polyfills.php';
 Util\Helper::bootstrapLibrary();
 
 // global variables I won't use anymore but maybe you do.

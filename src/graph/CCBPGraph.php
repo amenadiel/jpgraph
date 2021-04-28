@@ -1,54 +1,107 @@
 <?php
 
 /**
- * JPGraph v4.1.0-beta.01
+ * JPGraph - Community Edition
  */
 
 namespace Amenadiel\JpGraph\Graph;
 
-use function abs;
 use Amenadiel\JpGraph\Plot;
 use Amenadiel\JpGraph\Text;
 use Amenadiel\JpGraph\Util;
-use function array_merge;
-use function array_reverse;
-use function array_slice;
-use function ceil;
-use function date;
-use function floor;
-use function is_array;
 
 /**
  * Class CCBPGraph
  * Utility class to create Critical Chain Buffer penetration charts.
  */
-class CCBPGraph
+final class CCBPGraph
 {
-    public const TickStep   = 25;
-    public const YTitle     = '% Buffer used';
-    public const XTitle     = '% CC Completed';
+    public const TickStep = 25;
+    public const YTitle = '% Buffer used';
+    public const XTitle = '% CC Completed';
     public const NColorMaps = 2;
+
+    /**
+     * @var \Amenadiel\JpGraph\Graph\Graph|null
+     */
     private $graph;
+
+    /**
+     * @var int
+     */
     private $iWidth;
+
+    /**
+     * @var int
+     */
     private $iHeight;
-    private $iPlots    = [];
-    private $iXMin     = -50;
-    private $iXMax     = 100;
-    private $iYMin     = -50;
-    private $iYMax     = 150;
+
+    /**
+     * @var mixed[]
+     */
+    private $iPlots = [];
+
+    /**
+     * @var int|float
+     */
+    private $iXMin = -50;
+
+    /**
+     * @var int|float
+     */
+    private $iXMax = 100;
+
+    /**
+     * @var int|float
+     */
+    private $iYMin = -50;
+
+    /**
+     * @var int|float
+     */
+    private $iYMax = 150;
+
+    /**
+     * @var array<int, array<int>>|mixed[]
+     */
     private $iColorInd = [
         [5, 75], /* Green */
         [25, 85], /* Yellow */
         [50, 100],
     ]; /* Red */
-    private $iColorMap  = 0;
+    /**
+     * @var int
+     */
+    private $iColorMap = 0;
+
+    /**
+     * @var array<int, array<string>>|mixed[]
+     */
     private $iColorSpec = [
         ['darkgreen:1.0', 'yellow:1.4', 'red:0.8', 'darkred:0.85'],
         ['#c6e9af', '#ffeeaa', '#ffaaaa', '#de8787'],
     ];
-    private $iMarginColor = ['darkgreen@0.7', 'darkgreen@0.9'];
-    private $iSubTitle    = '';
-    private $iTitle       = 'CC Buffer penetration';
+
+    private const I_MARGIN_COLOR = ['darkgreen@0.7', 'darkgreen@0.9'];
+
+    /**
+     * @var string
+     */
+    private $iSubTitle = '';
+
+    /**
+     * @var string
+     */
+    private $iTitle = 'CC Buffer penetration';
+    /**
+     * @var string
+     */
+    private const DARKGRAY = 'darkgray';
+    // Use an accumulated fille line graph to create the colored bands
+    /**
+     * @var int
+     */
+    private const N = 3;
 
     /**
      * Construct a new instance of CCBPGraph.
@@ -60,54 +113,43 @@ class CCBPGraph
      */
     public function __construct($aWidth, $aHeight)
     {
-        $this->iWidth  = $aWidth;
+        $this->iWidth = $aWidth;
         $this->iHeight = $aHeight;
     }
 
     /**
      * Set the title and subtitle for the graph.
-     *
-     * @param string $aTitle
-     * @param string $aSubTitle
      */
-    public function SetTitle($aTitle, $aSubTitle)
+    public function SetTitle(string $aTitle, string $aSubTitle): void
     {
-        $this->iTitle    = $aTitle;
+        $this->iTitle = $aTitle;
         $this->iSubTitle = $aSubTitle;
     }
 
     /**
      * Set the x-axis min and max values.
-     *
-     * @param int $aMin
-     * @param int $aMax
      */
-    public function SetXMinMax($aMin, $aMax)
+    public function SetXMinMax(int $aMin, int $aMax): void
     {
-        $this->iXMin = floor($aMin / self::TickStep) * self::TickStep;
-        $this->iXMax = ceil($aMax / self::TickStep) * self::TickStep;
+        $this->iXMin = \floor($aMin / self::TickStep) * self::TickStep;
+        $this->iXMax = \ceil($aMax / self::TickStep) * self::TickStep;
     }
 
     /**
      * Specify what color map to use.
-     *
-     * @param int $aMap
      */
-    public function SetColorMap($aMap)
+    public function SetColorMap(int $aMap): void
     {
         $this->iColorMap = $aMap % self::NColorMaps;
     }
 
     /**
      * Set the y-axis min and max values.
-     *
-     * @param int $aMin
-     * @param int $aMax
      */
-    public function SetYMinMax($aMin, $aMax)
+    public function SetYMinMax(int $aMin, int $aMax): void
     {
-        $this->iYMin = floor($aMin / self::TickStep) * self::TickStep;
-        $this->iYMax = ceil($aMax / self::TickStep) * self::TickStep;
+        $this->iYMin = \floor($aMin / self::TickStep) * self::TickStep;
+        $this->iYMax = \ceil($aMax / self::TickStep) * self::TickStep;
     }
 
     /**
@@ -119,17 +161,18 @@ class CCBPGraph
      * @param mixed $aColors An array with four elements specifying the colors
      *                       of each color indicator
      */
-    public function SetColorIndication(array $aSpec, ?array $aColors = null)
+    public function SetColorIndication(array $aSpec, ?array $aColors = null): void
     {
         if (Configs::safe_count($aSpec) !== 3) {
             Util\JpGraphError::Raise('Specification of scale values for background indicators must be an array with three elements.');
         }
         $this->iColorInd = $aSpec;
-        if ($aColors === null) {
+
+        if (null === $aColors) {
             return;
         }
 
-        if (is_array($aColors) && Configs::safe_count($aColors) == 4) {
+        if (\is_array($aColors) && Configs::safe_count($aColors) === 4) {
             $this->iColorSpec = $aColors;
         } else {
             Util\JpGraphError::Raise('Color specification for background indication must have four colors.');
@@ -137,16 +180,45 @@ class CCBPGraph
     }
 
     /**
+     * Add a line or scatter plot to the graph.
+     *
+     * @param mixed $aPlots
+     */
+    public function Add($aPlots): void
+    {
+        if (\is_array($aPlots)) {
+            $this->iPlots = \array_merge($this->iPlots, $aPlots);
+        } else {
+            $this->iPlots[] = $aPlots;
+        }
+    }
+
+    /**
+     * Stroke the graph back to the client or to a file.
+     *
+     * @param mixed $aFile
+     */
+    public function Stroke($aFile = ''): void
+    {
+        $this->Init();
+
+        if (Configs::safe_count($this->iPlots) > 0) {
+            $this->graph->Add($this->iPlots);
+        }
+        $this->graph->Stroke($aFile);
+    }
+
+    /**
      * Construct the graph.
      */
-    private function Init()
+    private function Init(): void
     {
         // Setup limits for color indications
-        $lowx   = $this->iXMin;
-        $highx  = $this->iXMax;
-        $lowy   = $this->iYMin;
-        $highy  = $this->iYMax;
-        $width  = $this->iWidth;
+        $lowx = $this->iXMin;
+        $highx = $this->iXMax;
+        $lowy = $this->iYMin;
+        $highy = $this->iYMax;
+        $width = $this->iWidth;
         $height = $this->iHeight;
 
         // Margins
@@ -155,25 +227,25 @@ class CCBPGraph
         $tm = 60;
         $bm = 40;
 
-        if ($width <= 300 || $height <= 250) {
+        if (300 >= $width || 250 >= $height) {
             $labelsize = 8;
-            $lm        = 25;
-            $rm        = 25;
-            $tm        = 45;
-            $bm        = 25;
-        } elseif ($width <= 450 || $height <= 300) {
+            $lm = 25;
+            $rm = 25;
+            $tm = 45;
+            $bm = 25;
+        } elseif (450 >= $width || 300 >= $height) {
             $labelsize = 8;
-            $lm        = 30;
-            $rm        = 30;
-            $tm        = 50;
-            $bm        = 30;
-        } elseif ($width <= 600 || $height <= 400) {
+            $lm = 30;
+            $rm = 30;
+            $tm = 50;
+            $bm = 30;
+        } elseif (600 >= $width || 400 >= $height) {
             $labelsize = 9;
         } else {
             $labelsize = 11;
         }
 
-        if ($this->iSubTitle == '') {
+        if ('' === $this->iSubTitle) {
             $tm -= $labelsize + 4;
         }
 
@@ -181,7 +253,7 @@ class CCBPGraph
         $graph->clearTheme();
         $graph->SetScale('intint', $lowy, $highy, $lowx, $highx);
         $graph->SetMargin($lm, $rm, $tm, $bm);
-        $graph->SetMarginColor($this->iMarginColor[$this->iColorMap]);
+        $graph->SetMarginColor(self::I_MARGIN_COLOR[$this->iColorMap]);
         $graph->SetClipping();
 
         $graph->title->Set($this->iTitle);
@@ -205,21 +277,24 @@ class CCBPGraph
         $graph->yaxis->SetLabelFormatString('%d%%');
 
         // For the x-axis we adjust the color so labels on the left of the Y-axis are in black
-        $n1 = floor(abs($this->iXMin / 25)) + 1;
-        $n2 = floor($this->iXMax / 25);
-        if ($this->iColorMap == 0) {
+        $n1 = \floor(\abs($this->iXMin / 25)) + 1;
+        $n2 = \floor($this->iXMax / 25);
+
+        if (0 === $this->iColorMap) {
             $xlcolors = [];
+
             for ($i = 0; $i < $n1; ++$i) {
                 $xlcolors[$i] = 'black';
             }
+
             for ($i = 0; $i < $n2; ++$i) {
                 $xlcolors[$n1 + $i] = 'lightgray:1.5';
             }
             $graph->xaxis->SetColor('gray', $xlcolors);
             $graph->yaxis->SetColor('gray', 'lightgray:1.5');
         } else {
-            $graph->xaxis->SetColor('darkgray', 'darkgray:0.8');
-            $graph->yaxis->SetColor('darkgray', 'darkgray:0.8');
+            $graph->xaxis->SetColor(self::DARKGRAY, 'darkgray:0.8');
+            $graph->yaxis->SetColor(self::DARKGRAY, 'darkgray:0.8');
         }
         $graph->SetGridDepth(Configs::DEPTH_FRONT);
         $graph->ygrid->SetColor('gray@0.6');
@@ -230,7 +305,7 @@ class CCBPGraph
         $graph->xaxis->SetWeight(1);
         $graph->yaxis->SetWeight(1);
 
-        $ytitle = new Text\Text(self::YTitle, floor($lm * .75), ($height - $tm - $bm) / 2 + $tm);
+        $ytitle = new Text\Text(self::YTitle, \floor($lm * .75), ($height - $tm - $bm) / 2 + $tm);
         // $ytitle->SetFont(Configs::FF_VERA,FS_BOLD,$labelsize+1);
         $ytitle->SetAlign('right', 'center');
         $ytitle->SetAngle(90);
@@ -242,28 +317,27 @@ class CCBPGraph
         $graph->Add($xtitle);
 
         $df = 'D j:S M, Y';
-        if ($width < 400) {
+
+        if (400 > $width) {
             $df = 'D j:S M';
         }
 
-        $time = new Text\Text(date($df), $width - 10, $height - 10);
+        $time = new Text\Text(\date($df), $width - 10, $height - 10);
         $time->SetAlign('right', 'bottom');
         // $time->SetFont(Configs::FF_VERA,Configs::getConfig('FS_NORMAL'),$labelsize-1);
-        $time->SetColor('darkgray');
+        $time->SetColor(self::DARKGRAY);
         $graph->Add($time);
 
-        // Use an accumulated fille line graph to create the colored bands
-
-        $n = 3;
-        for ($i = 0; $i < $n; ++$i) {
-            $b           = $this->iColorInd[$i][0];
-            $k           = ($this->iColorInd[$i][1] - $this->iColorInd[$i][0]) / $this->iXMax;
+        for ($i = 0; $i < self::N; ++$i) {
+            $b = $this->iColorInd[$i][0];
+            $k = ($this->iColorInd[$i][1] - $this->iColorInd[$i][0]) / $this->iXMax;
             $colarea[$i] = [[$lowx, $lowx * $k + $b], [$highx, $highx * $k + $b]];
         }
         $colarea[3] = [[$lowx, $highy], [$highx, $highy]];
 
         $cb = [];
-        for ($i = 0; $i < 4; ++$i) {
+
+        for ($i = 0; 4 > $i; ++$i) {
             $cb[$i] = new Plot\LinePlot(
                 [$colarea[$i][0][1], $colarea[$i][1][1]],
                 [$colarea[$i][0][0], $colarea[$i][1][0]]
@@ -272,35 +346,7 @@ class CCBPGraph
             $cb[$i]->SetFillFromYMin();
         }
 
-        $graph->Add(array_slice(array_reverse($cb), 0, 4));
+        $graph->Add(\array_slice(\array_reverse($cb), 0, 4));
         $this->graph = $graph;
-    }
-
-    /**
-     * Add a line or scatter plot to the graph.
-     *
-     * @param mixed $aPlots
-     */
-    public function Add($aPlots)
-    {
-        if (is_array($aPlots)) {
-            $this->iPlots = array_merge($this->iPlots, $aPlots);
-        } else {
-            $this->iPlots[] = $aPlots;
-        }
-    }
-
-    /**
-     * Stroke the graph back to the client or to a file.
-     *
-     * @param mixed $aFile
-     */
-    public function Stroke($aFile = '')
-    {
-        $this->Init();
-        if (Configs::safe_count($this->iPlots) > 0) {
-            $this->graph->Add($this->iPlots);
-        }
-        $this->graph->Stroke($aFile);
     }
 }

@@ -1,10 +1,11 @@
 <?php
 
 /**
- * JPGraph v4.1.0-beta.01
+ * JPGraph - Community Edition
  */
 
 require_once __DIR__ . '/../../src/config.inc.php';
+
 use Amenadiel\JpGraph\Graph;
 use Amenadiel\JpGraph\Plot;
 
@@ -14,9 +15,9 @@ $datay2 = [35, 90, 190];
 $datay3 = [20, 60, 70];
 
 // Create the basic graph
-$__width  = 300;
+$__width = 300;
 $__height = 200;
-$graph    = new Graph\Graph($__width, $__height);
+$graph = new Graph\Graph($__width, $__height);
 $graph->SetScale('textlin');
 $graph->SetMargin(40, 20, 20, 40);
 $graph->SetMarginColor('white:0.9');
@@ -24,7 +25,7 @@ $graph->SetColor('white');
 $graph->SetShadow();
 
 // Apply a perspective transformation at the end
-$graph->Set3DPerspective(Graph\Configs::getConfig('SKEW3D_LEFT'), 350, 320, true);
+$graph->Set3DPerspective(Graph\Configs::getConfig('SKEW3D_LEFT'), 300, 320, true);
 
 // Adjust the position of the legend box
 $graph->legend->Pos(0.03, 0.10);

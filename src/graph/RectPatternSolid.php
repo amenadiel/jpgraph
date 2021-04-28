@@ -1,14 +1,14 @@
 <?php
 
 /**
- * JPGraph v4.1.0-beta.01
+ * JPGraph - Community Edition
  */
 
 namespace Amenadiel\JpGraph\Graph;
 
 /**
  * @class RectPatternSolid
- * // Implements a solid band
+  *  Implements a solid band
  */
 class RectPatternSolid extends RectPattern
 {

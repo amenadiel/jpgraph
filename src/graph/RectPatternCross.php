@@ -1,25 +1,32 @@
 <?php
 
 /**
- * JPGraph v4.1.0-beta.01
+ * JPGraph - Community Edition
  */
 
 namespace Amenadiel\JpGraph\Graph;
 
 /**
  * @class RectPatternCross
- * // Vert/Hor crosses
+  *  Vert/Hor crosses
  */
 class RectPatternCross extends RectPattern
 {
+    /**
+     * @var RectPatternVert
+     */
     private $vert;
+
+    /**
+     * @var RectPatternHor
+     */
     private $hor;
 
     public function __construct($aColor = 'black', $aWeight = 1)
     {
         parent::__construct($aColor, $aWeight);
         $this->vert = new RectPatternVert($aColor, $aWeight);
-        $this->hor  = new RectPatternHor($aColor, $aWeight);
+        $this->hor = new RectPatternHor($aColor, $aWeight);
     }
 
     public function SetOrder($aDepth)
